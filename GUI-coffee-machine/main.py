@@ -1,12 +1,40 @@
 from tkinter import *
 from tkinter import messagebox as mb
-from resources import resources, money
+import sqlite3
+# from resources import resources, money
 from MenuItem import MenuItem
+
+conn = sqlite3.connect("coffee.db")
+print("connected to db")
+
+conn.execute('''CREATE TABLE resources
+         (money INT,
+          milk INT,
+          water INT,
+          coffee INT);''')
+print("Table created successfully")
+
+conn.execute(
+    "INSERT INTO resources (money,milk,water,coffee) VALUES (0,200,300,100 )")
+
+conn.commit()
+
+cursor = conn.execute("SELECT money,milk,water,coffee from resources")
+
+resources = {}
+money = 0
+
+for row in cursor:
+    money = row[0]
+    resources['milk'] = row[1]
+    resources['water'] = row[2]
+    resources['coffee'] = row[3]
 
 
 def payment(dollars):
     global money
     if dollars < item.cost:
+        e1.delete(0, 'end')
         l1.config(text="Sorry thats not enough money. Money refunded.")
     else:
         if(item.name != 'espresso'):
@@ -15,6 +43,7 @@ def payment(dollars):
         resources['Coffee'] -= item.coffee
         money += item.cost
         change = dollars-item.cost
+        e1.delete(0, 'end')
         l1.config(
             text=f"Here is ${change} in change.\nHere is your {item.name}☕ enjoy!\n\n\nWould you like an another drink?\nEnter its name")
 
@@ -86,7 +115,6 @@ def check_resources(item):
         l1.config(text="Sorry there is not enough coffee.")
         return False
     else:
-        # l1.config(text="Enough")
         return True
 
 
@@ -103,7 +131,6 @@ def handleEntry():
             "Resources", f"{keys[0]} : {resources[keys[0]]}ml\n{keys[1]} : {resources[keys[1]]}ml\n{keys[2]} : {resources[keys[2]]}gm\nMoney : ${money}")
     elif(e1.get() == 'latte' or e1.get() == "cappuccino" or e1.get() == "espresso"):
         txt = e1.get()
-        e1.delete(0, 'end')
         item = MenuItem(txt)
         enough = check_resources(item)
         if enough == True:
@@ -146,3 +173,5 @@ f1.pack()
 f1.configure(background="white")
 
 top.mainloop()
+
+conn.close()
